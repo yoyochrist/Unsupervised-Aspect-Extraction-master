@@ -4,7 +4,7 @@ from keras import initializations
 from keras import regularizers
 from keras import constraints
 import numpy as np
-import theano.tensor as T
+import tensorflow as T
 
 class Attention(Layer):
     def __init__(self, W_regularizer=None, b_regularizer=None,
@@ -172,7 +172,7 @@ class MaxMargin(Layer):
         z_n = z_n / K.cast(K.epsilon() + K.sqrt(K.sum(K.square(z_n), axis=-1, keepdims=True)), K.floatx())
         r_s = r_s / K.cast(K.epsilon() + K.sqrt(K.sum(K.square(r_s), axis=-1, keepdims=True)), K.floatx())
 
-        steps = z_n.shape[1]
+        steps = K.reshape(z_n, (-1,tf.shape(z_n)[1]*tf.shape(z_n)[2]))
 
         pos = K.sum(z_s*r_s, axis=-1, keepdims=True)
         pos = K.repeat_elements(pos, steps, axis=-1)
@@ -180,7 +180,7 @@ class MaxMargin(Layer):
         r_s = K.repeat_elements(r_s, steps, axis=1)
         neg = K.sum(z_n*r_s, axis=-1)
 
-        loss = K.cast(K.sum(T.maximum(0., (1. - pos + neg)), axis=-1, keepdims=True), K.floatx())
+        loss = K.cast(K.sum(K.maximum(0., (1. - pos + neg)), axis=-1, keepdims=True), K.floatx())
         return loss
 
     def compute_mask(self, input_tensor, mask=None):
